@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survival Guide - Interactieve Eerste Hulp Bij Starten</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Space Grotesk & Outfit) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Neo-brutalisme schaduw effecten van de originele layout */
+        .brutal-shadow {
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+        .brutal-shadow-lg {
+            box-shadow: 8px 8px 0px 0px #000000;
+        }
+        .brutal-shadow-sm {
+            box-shadow: 2px 2px 0px 0px #000000;
+        }
+        .brutal-shadow-hover:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #000000;
+        }
+        .brutal-shadow-active:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #000000;
+        }
+        
+        /* Custom border width helper */
+        .border-3 {
+            border-width: 3px;
+        }
+
+        /* Print-optimalisatie: verberg interactieve elementen en optimaliseer kleuren */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .tip-card {
+                break-inside: avoid;
+                box-shadow: none !important;
+                border: 2px solid #000000 !important;
+                margin-bottom: 1rem !important;
+            }
+            .tip-details {
+                display: block !important;
+            }
+        }
+
+        /* Animatie voor confetti-canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-slate-900 min-h-screen py-6 px-4 flex flex-col items-center justify-start selection:bg-yellow-300 relative theme-yellow">
+
+    <!-- Canvas voor confetti effecten -->
+    <canvas id="confetti-canvas" class="no-print"></canvas>
+
+    <!-- Custom Brutalist Modal Box (No-print) -->
+    <div id="brutal-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 no-print">
+        <div class="bg-white border-4 border-black p-6 rounded-xl max-w-md w-full brutal-shadow-lg text-center">
+            <span class="text-4xl" id="modal-icon">⚠️</span>
+            <h3 class="heading-font font-black text-xl uppercase mt-2 mb-3" id="modal-title">Melding!</h3>
+            <p id="modal-message" class="text-sm text-slate-700 font-medium mb-4">Berichtinhoud</p>
+            <button onclick="closeModal()" class="w-full bg-yellow-300 hover:bg-yellow-400 text-black border-2 border-black py-2 rounded font-extrabold uppercase brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all">Begrepen!</button>
+        </div>
+    </div>
+
+    <!-- API SLEUTEL MODAL (Voor lokaal/extern website gebruik) -->
+    <div id="api-key-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 no-print">
+        <div class="bg-white border-4 border-black p-6 rounded-xl max-w-lg w-full brutal-shadow-lg">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="text-3xl">🔑</span>
+                <h4 class="heading-font font-black text-lg uppercase">Gemini AI Sleutel Instellen</h4>
+            </div>
+            <p class="text-xs font-bold text-slate-700 leading-relaxed bg-yellow-50 p-3 border-2 border-black rounded mb-4">
+                Om de AI-functies buiten de testomgeving te laten werken, heb je een gratis Gemini API Key nodig. 
+                Sla deze hier op. De sleutel wordt alleen lokaal in jouw eigen browser bewaard.
+            </p>
+            
+            <div class="space-y-3 mb-4">
+                <label class="block text-xs font-black uppercase tracking-wider">Jouw Gemini API Sleutel:</label>
+                <input id="api-key-input" type="password" placeholder="AIzaSy..." class="w-full p-2.5 border-2 border-black rounded text-xs font-mono focus:outline-none bg-slate-50 focus:bg-white">
+                <div class="text-[10px] font-bold text-slate-500">
+                    Nog geen sleutel? Je kunt er gratis een aanvragen via 
+                    <a href="https://aistudio.google.com/" target="_blank" class="text-blue-600 underline font-bold hover:text-blue-800">Google AI Studio</a>.
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <button onclick="clearApiKey()" class="text-red-600 hover:underline text-xs font-bold">
+                    Sleutel Verwijderen
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeApiKeyModal()" class="bg-white border-2 border-black px-4 py-2 rounded text-xs font-extrabold uppercase tracking-wide hover:bg-slate-100 transition-colors">
+                        ANNULEREN
+                    </button>
+                    <button onclick="saveApiKey()" class="bg-blue-300 text-black border-2 border-black px-4 py-2 rounded text-xs font-extrabold uppercase tracking-wide brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all">
+                        Sleutel Opslaan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Poster Container -->
+    <div class="max-w-4xl w-full bg-white border-4 border-black p-4 md:p-8 brutal-shadow-lg rounded-xl relative my-4 print-full-width">
+        
+        <!-- Theme Switcher & Dashboard Header (No-Print) -->
+        <div class="no-print flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-black">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-xs uppercase tracking-wider heading-font">Kies Stijl:</span>
+                    <div class="flex gap-1.5">
+                        <button onclick="setTheme('yellow')" class="w-6 h-6 rounded-full bg-yellow-300 border-2 border-black brutal-shadow-sm hover:scale-110 transition-transform" title="Retro Yellow"></button>
+                        <button onclick="setTheme('pink')" class="w-6 h-6 rounded-full bg-pink-300 border-2 border-black brutal-shadow-sm hover:scale-110 transition-transform" title="Bubblegum Pink"></button>
+                        <button onclick="setTheme('green')" class="w-6 h-6 rounded-full bg-emerald-300 border-2 border-black brutal-shadow-sm hover:scale-110 transition-transform" title="Matrix Green"></button>
+                        <button onclick="setTheme('purple')" class="w-6 h-6 rounded-full bg-violet-400 border-2 border-black brutal-shadow-sm hover:scale-110 transition-transform" title="Cyber Cyberpunk"></button>
+                    </div>
+                </div>
+                
+                <!-- API Sleutel Knop -->
+                <button onclick="openApiKeyModal()" class="bg-blue-400 text-black font-extrabold border-2 border-black px-3 py-1 rounded text-xs brutal-shadow-sm hover:translate-y-[-1px] hover:shadow-md transition-all active:translate-y-0.5 flex items-center gap-1">
+                    <span>🔑</span> AI SLEUTEL
+                </button>
+            </div>
+            
+            <!-- Realtime Survival Score Tracker -->
+            <div class="flex items-center gap-3 bg-black text-white px-3 py-1.5 rounded-lg border-2 border-black">
+                <span class="text-xs uppercase font-extrabold heading-font tracking-wider text-yellow-300">Survival Status:</span>
+                <span id="survival-badge" class="text-xs font-bold px-2 py-0.5 bg-yellow-400 text-black rounded uppercase">Groentje 🍼</span>
+                <span id="score-counter" class="text-sm font-black text-white heading-font">0/5</span>
+            </div>
+        </div>
+
+        <!-- Decoratieve Badge (Blijft op print) -->
+        <div id="badge-stamp" class="absolute -top-6 -right-4 w-24 h-24 bg-yellow-300 border-4 border-black rounded-full flex items-center justify-center transform rotate-12 heading-font font-bold text-sm text-center pt-2 select-none z-10 transition-all duration-300 brutal-shadow">
+            HIER <br> STARTEN!
+        </div>
+        
+        <!-- Header -->
+        <header class="text-center mb-8 border-b-4 border-dashed border-black pb-6">
+            <span id="accent-tag" class="inline-block bg-indigo-600 text-white font-bold px-4 py-1.5 border-2 border-black rounded-md brutal-shadow text-xs uppercase tracking-widest mb-4 heading-font">
+                Hoger Onderwijs Survival Guide
+            </span>
+            <h1 class="heading-font text-3xl md:text-5xl font-extrabold tracking-tight uppercase leading-none">
+                Eerste Hulp Bij <br>
+                <span id="accent-highlight" class="text-indigo-600 bg-yellow-300 px-3 py-1 inline-block border-2 border-black rounded mt-2 rotate-[-1deg] transition-all">Starten</span>
+            </h1>
+            <p class="text-slate-600 mt-4 text-sm md:text-base max-w-xl mx-auto font-medium">
+                Laat je niet gek maken. Klik op de tips om actie-hacks te openen, vink ze af als je ze beheerst en test de interactieve survival tools!
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <!-- Left Side: Interactive Tips List (8 cols on desktop) -->
+            <div class="md:col-span-8 space-y-6">
+                
+                <!-- TIP 1 -->
+                <div id="tip-1" class="tip-card flex flex-col p-5 md:p-6 bg-purple-50 border-4 border-black rounded-lg brutal-shadow hover:bg-purple-100 transition-all duration-150 cursor-pointer animate-once" onclick="toggleTip(1)">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-purple-400 border-2 border-black flex items-center justify-center font-black text-xl heading-font shrink-0 brutal-shadow-sm">
+                            01
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="heading-font text-lg md:text-xl font-bold uppercase tracking-tight text-purple-950 flex items-center justify-between">
+                                <span>De Eerste-Week-Hack</span>
+                                <span class="text-xs text-slate-500 no-print font-normal group-hover:underline">Klik voor actie ↓</span>
+                            </h3>
+                        </div>
+                        <!-- Checkbox -->
+                        <div onclick="event.stopPropagation(); toggleCheck(1);" class="no-print w-8 h-8 border-2 border-black rounded flex items-center justify-center bg-white transition-all brutal-shadow-sm active:scale-95" id="check-box-1">
+                            <span class="hidden font-black text-purple-600 text-lg">✓</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Expandable Action Step Details -->
+                    <div id="details-1" class="tip-details hidden mt-3 pt-3 border-t-2 border-dashed border-purple-200 text-xs md:text-sm text-slate-700 space-y-2">
+                        <p>
+                            Wees aanwezig bij <strong>al uw lessen</strong> tijdens de eerste week. Waarom? Dit is hét moment om te spotten welke docenten letterlijk hun slides voorlezen (en waar je dus minder intensief hoeft op te letten) en om direct de <strong>studiewijzers</strong> te scoren.
+                        </p>
+                        <div class="bg-white border-2 border-black p-3 rounded brutal-shadow-sm mt-2 text-xs no-print">
+                            <strong class="text-purple-950">🔥 PRO-HACK:</strong> Download meteen de syllabus/studiewijzers en zet de deadline-data in je agenda voor er überhaupt lesstof is uitgelegd. Zo loop je nooit achter de feiten aan.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIP 2 -->
+                <div id="tip-2" class="tip-card flex flex-col p-5 md:p-6 bg-emerald-50 border-4 border-black rounded-lg brutal-shadow hover:bg-emerald-100 transition-all duration-150 cursor-pointer" onclick="toggleTip(2)">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-emerald-400 border-2 border-black flex items-center justify-center font-black text-xl heading-font shrink-0 brutal-shadow-sm">
+                            02
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="heading-font text-lg md:text-xl font-bold uppercase tracking-tight text-emerald-950 flex items-center justify-between">
+                                <span>Noteren als een Pro</span>
+                                <span class="text-xs text-slate-500 no-print font-normal">Klik voor actie ↓</span>
+                            </h3>
+                        </div>
+                        <!-- Checkbox -->
+                        <div onclick="event.stopPropagation(); toggleCheck(2);" class="no-print w-8 h-8 border-2 border-black rounded flex items-center justify-center bg-white transition-all brutal-shadow-sm active:scale-95" id="check-box-2">
+                            <span class="hidden font-black text-emerald-600 text-lg">✓</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Expandable Action Step Details -->
+                    <div id="details-2" class="tip-details hidden mt-3 pt-3 border-t-2 border-dashed border-emerald-200 text-xs md:text-sm text-slate-700 space-y-2">
+                        <p>
+                            Schrijf niet blindelings alles over. Kies de beste <strong>notitiemethode</strong>, zoals de Cornell-methode of mindmapping. Hierdoor kun je efficiënter notities nemen en beter studeren.
+                        </p>
+                        <!-- Interactive Cornell & AI Study Helper Widget -->
+                        <div class="bg-white border-2 border-black p-3 rounded brutal-shadow-sm mt-2 text-xs no-print space-y-3" onclick="event.stopPropagation()">
+                            <strong class="text-emerald-950 block text-[11px] uppercase tracking-wider heading-font">🛠️ SLIMME AI NOTITIE & STUDIE ASSISTENT:</strong>
+                            <p class="text-[10px] text-slate-600 font-medium">Plak hieronder je ruwe, snelle aantekeningen of een stuk leerstof:</p>
+                            <textarea id="study-notes-input" placeholder="bv. De docent zei dat DNA uit nucleotiden bestaat, a t c g, a hoort bij t, c hoort bij g. het is dubbelstrengs. heel belangrijk voor het tentamen!" class="w-full bg-slate-50 p-2 text-[11px] border-2 border-black rounded h-20 resize-none focus:bg-white focus:outline-none brutal-shadow-sm font-medium"></textarea>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="askStudyAI('cornell')" id="btn-ai-cornell" class="bg-emerald-300 hover:bg-emerald-400 text-black border-2 border-black px-2.5 py-1.5 rounded font-extrabold text-[10px] brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all uppercase">🪄 Naar Cornell Structuur</button>
+                                <button onclick="askStudyAI('recall')" id="btn-ai-recall" class="bg-amber-300 hover:bg-amber-400 text-black border-2 border-black px-2.5 py-1.5 rounded font-extrabold text-[10px] brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all uppercase">🧠 Genereer Recall Vragen</button>
+                            </div>
+
+                            <!-- AI Output Container -->
+                            <div id="study-ai-output" class="hidden p-3 bg-slate-950 text-emerald-300 rounded text-[11px] border-2 border-black relative min-h-[50px] leading-relaxed">
+                                <div id="study-ai-loader" class="hidden absolute inset-0 bg-slate-950 text-white rounded flex items-center justify-center font-bold text-xs gap-2">
+                                    <span class="animate-bounce">⚡</span> AI structureert je stof...
+                                </div>
+                                <div id="study-ai-text" class="space-y-2 font-medium"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIP 3 -->
+                <div id="tip-3" class="tip-card flex flex-col p-5 md:p-6 bg-sky-50 border-4 border-black rounded-lg brutal-shadow hover:bg-sky-100 transition-all duration-150 cursor-pointer" onclick="toggleTip(3)">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-sky-400 border-2 border-black flex items-center justify-center font-black text-xl heading-font shrink-0 brutal-shadow-sm">
+                            03
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="heading-font text-lg md:text-xl font-bold uppercase tracking-tight text-sky-950 flex items-center justify-between">
+                                <span>Drempels Bestaan Niet</span>
+                                <span class="text-xs text-slate-500 no-print font-normal">Klik voor actie ↓</span>
+                            </h3>
+                        </div>
+                        <!-- Checkbox -->
+                        <div onclick="event.stopPropagation(); toggleCheck(3);" class="no-print w-8 h-8 border-2 border-black rounded flex items-center justify-center bg-white transition-all brutal-shadow-sm active:scale-95" id="check-box-3">
+                            <span class="hidden font-black text-sky-600 text-lg">✓</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Expandable Action Step Details -->
+                    <div id="details-3" class="tip-details hidden mt-3 pt-3 border-t-2 border-dashed border-sky-200 text-xs md:text-sm text-slate-700 space-y-2">
+                        <p>
+                            Vraag hulp! In een nieuw schooljaar kan het best wel eens zijn dat je vreest om vragen of hulp te stellen. Maar onthoud: iedereen wil je helpen, en ouderejaars weten precies de weg.
+                        </p>
+                        <!-- AI Helper Input Field -->
+                        <div class="bg-white border-2 border-black p-3 rounded brutal-shadow-sm mt-2 text-xs no-print" onclick="event.stopPropagation()">
+                            <strong class="text-sky-950 block mb-1">🤔 BANG VOOR IETS? ONZE INTEGRALE AI HELPT JE DIRECT:</strong>
+                            <div class="flex flex-wrap gap-1.5 mt-2 mb-3">
+                                <button onclick="addFearText('Ik vind het lastig om nieuwe vrienden te maken in een grote collegezaal')" class="bg-purple-100 hover:bg-purple-200 px-2 py-1 rounded border border-black font-semibold text-[10px] transition-colors">\"Vrienden maken\"</button>
+                                <button onclick="addFearText('Ik durf geen vragen te stellen aan de docent tijdens de les')" class="bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded border border-black font-semibold text-[10px] transition-colors">\"Vragen in college\"</button>
+                                <button onclick="addFearText('Het gebouw is gigantisch groot en ik ben bang om te verdwalen')" class="bg-amber-100 hover:bg-amber-200 px-2 py-1 rounded border border-black font-semibold text-[10px] transition-colors">\"Gebouw kwijtraken\"</button>
+                            </div>
+                            
+                            <div class="mt-3 pt-3 border-t border-dashed border-slate-300">
+                                <label for="ai-problem-input" class="block font-bold text-[10px] text-slate-700 mb-1 uppercase tracking-wider">Of typ je eigen specifieke probleem of angst:</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="ai-problem-input" onkeydown="if(event.key === 'Enter') askAI()" placeholder="bv. Ik voel me eenzaam of ik vind presenteren doodeng..." class="flex-grow p-2 border-2 border-black rounded text-[11px] bg-slate-50 focus:bg-white focus:outline-none brutal-shadow-sm">
+                                    <button onclick="askAI()" id="ai-submit-btn" class="bg-sky-400 hover:bg-sky-500 text-black border-2 border-black px-3 py-1 rounded font-extrabold text-[10px] brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all">VRAAG AI</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Dynamic Result Output Box -->
+                            <div id="fear-buster-answer" class="hidden mt-3 p-3 bg-slate-900 text-yellow-300 rounded text-[11px] font-medium border-2 border-black leading-snug relative min-h-[40px]">
+                                <div id="ai-loader" class="hidden absolute inset-0 bg-slate-900 text-white rounded flex items-center justify-center font-bold text-xs gap-2">
+                                    <span class="animate-bounce">🔮</span> AI denkt na...
+                                </div>
+                                <div id="fear-buster-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIP 4 -->
+                <div id="tip-4" class="tip-card flex flex-col p-5 md:p-6 bg-pink-50 border-4 border-black rounded-lg brutal-shadow hover:bg-pink-100 transition-all duration-150 cursor-pointer" onclick="toggleTip(4)">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-pink-400 border-2 border-black flex items-center justify-center font-black text-xl heading-font shrink-0 brutal-shadow-sm">
+                            04
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="heading-font text-lg md:text-xl font-bold uppercase tracking-tight text-pink-950 flex items-center justify-between">
+                                <span>Plan Slim, Rust Hard</span>
+                                <span class="text-xs text-slate-500 no-print font-normal">Klik voor actie ↓</span>
+                            </h3>
+                        </div>
+                        <!-- Checkbox -->
+                        <div onclick="event.stopPropagation(); toggleCheck(4);" class="no-print w-8 h-8 border-2 border-black rounded flex items-center justify-center bg-white transition-all brutal-shadow-sm active:scale-95" id="check-box-4">
+                            <span class="hidden font-black text-pink-600 text-lg">✓</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Expandable Action Step Details -->
+                    <div id="details-4" class="tip-details hidden mt-3 pt-3 border-t-2 border-dashed border-pink-200 text-xs md:text-sm text-slate-700 space-y-2">
+                        <p>
+                            Maak een planning! Door een slimme planning kun je veel efficiënter werken en stress vermijden, mits je je natuurlijk aan de planning houdt en ook voldoende rust inplant.
+                        </p>
+                        <!-- Pomodoro Timer Interactive Integration -->
+                        <div class="bg-white border-2 border-black p-3 rounded brutal-shadow-sm mt-2 text-xs no-print space-y-2" onclick="event.stopPropagation()">
+                            <strong class="text-pink-950 block">⏱️ STEL JE FOCUS-TIMER IN EN TEST JE CONCENTRATIE:</strong>
+                            <div class="flex flex-wrap items-center gap-3 bg-pink-100 p-2.5 rounded border border-black">
+                                <div class="flex items-center gap-1.5 bg-white px-2 py-1 border border-black rounded">
+                                    <label for="timer-minutes" class="font-bold text-[10px] text-pink-950 uppercase">Duur:</label>
+                                    <input type="number" id="timer-minutes" min="1" max="180" value="25" onchange="adjustTimerDuration()" class="w-12 text-center font-bold font-mono text-xs border border-slate-400 rounded focus:outline-none">
+                                    <span class="font-bold text-[10px] text-slate-600">min</span>
+                                </div>
+                                
+                                <span id="timer-display" class="font-mono text-xl font-black text-pink-950 tracking-wider">25:00</span>
+                                
+                                <div class="flex gap-1.5">
+                                    <button id="btn-timer-start" onclick="toggleTimer()" class="bg-black text-white px-3 py-1.5 rounded font-extrabold text-[10px] brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all">START</button>
+                                    <button onclick="resetTimer()" class="bg-white border border-black px-3 py-1.5 rounded font-extrabold text-[10px] brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all">RESET</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIP 5 -->
+                <div id="tip-5" class="tip-card flex flex-col p-5 md:p-6 bg-amber-100 border-4 border-black rounded-lg brutal-shadow hover:bg-amber-200 transition-all duration-150 cursor-pointer" onclick="toggleTip(5)">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-amber-400 border-2 border-black flex items-center justify-center font-black text-xl heading-font shrink-0 brutal-shadow-sm">
+                            05
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="heading-font text-lg md:text-xl font-bold uppercase tracking-tight text-amber-950 flex items-center justify-between">
+                                <span>Goed Studeren & Onthouden</span>
+                                <span class="text-xs text-slate-500 no-print font-normal">Klik voor actie ↓</span>
+                            </h3>
+                        </div>
+                        <!-- Checkbox -->
+                        <div onclick="event.stopPropagation(); toggleCheck(5);" class="no-print w-8 h-8 border-2 border-black rounded flex items-center justify-center bg-white transition-all brutal-shadow-sm active:scale-95" id="check-box-5">
+                            <span class="hidden font-black text-amber-600 text-lg">✓</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Expandable Action Step Details -->
+                    <div id="details-5" class="tip-details hidden mt-3 pt-3 border-t-2 border-dashed border-amber-300 text-xs md:text-sm text-slate-700 space-y-2">
+                        <p>
+                            Studeer regelmatig direct na een les om te voorkomen dat je het lesonderwerp vergeet. Zo blijven je hersenen scherp en voorkom je bergen inhaalwerk in de toetsweek!
+                        </p>
+                        <div class="bg-white border-2 border-black p-3 rounded brutal-shadow-sm mt-2 text-xs no-print space-y-1" onclick="event.stopPropagation()">
+                            <strong class="text-amber-950">💡 PRO-STUDEERMETHODE:</strong>
+                            <p class="italic text-[11px]">Schrijf na elk hoorcollege zonder te spieken 3 hoofdpunten op papier. Dit dwingt je hersenen direct om de informatie op te diepen, wat de herinnering verdubbelt!</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side Dashboard (4 cols on desktop) -->
+            <div class="md:col-span-4 space-y-6 no-print">
+                
+                <!-- Challenge Checklist Progress Box -->
+                <div class="bg-indigo-50 border-3 border-black p-4 rounded-lg brutal-shadow">
+                    <h4 class="heading-font font-extrabold uppercase text-sm tracking-tight mb-3 text-indigo-950">🚀 Survival Checklist</h4>
+                    <p class="text-xs text-slate-600 mb-4">Vink alle tips af op de poster links als je ze toepast of onder de knie hebt!</p>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs p-2 bg-white rounded border border-black">
+                            <span class="font-medium">1. Eerste-week hack</span>
+                            <span id="tracker-check-1" class="text-slate-300 font-bold">❌</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs p-2 bg-white rounded border border-black">
+                            <span class="font-medium">2. Noteren pro</span>
+                            <span id="tracker-check-2" class="text-slate-300 font-bold">❌</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs p-2 bg-white rounded border border-black">
+                            <span class="font-medium">3. Drempels weg</span>
+                            <span id="tracker-check-3" class="text-slate-300 font-bold">❌</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs p-2 bg-white rounded border border-black">
+                            <span class="font-medium">4. Slimme planning</span>
+                            <span id="tracker-check-4" class="text-slate-300 font-bold">❌</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs p-2 bg-white rounded border border-black">
+                            <span class="font-medium">5. Active recall</span>
+                            <span id="tracker-check-5" class="text-slate-300 font-bold">❌</span>
+                        </div>
+                    </div>
+
+                    <div id="checklist-congrats" class="hidden mt-4 p-2 bg-yellow-300 text-black border-2 border-black rounded text-center font-bold text-xs heading-font animate-bounce">
+                        🎉 JE BENT EEN OVERLEVER!
+                    </div>
+                </div>
+
+                <!-- Motivation Station -->
+                <div class="bg-yellow-50 border-3 border-black p-4 rounded-lg brutal-shadow">
+                    <h4 class="heading-font font-extrabold uppercase text-sm tracking-tight mb-2 text-yellow-950">🍀 Inspiratie Boost</h4>
+                    <p id="quote-box" class="text-xs text-slate-700 italic min-h-[50px] flex items-center">
+                        "De beste manier om te voorspellen hoe je toets gaat, is door nu te beginnen met kleine acties."
+                    </p>
+                    <button onclick="newQuote()" class="mt-2 w-full bg-black text-white py-1.5 rounded text-xs font-bold uppercase tracking-wider brutal-shadow-sm active:translate-y-0.5 active:shadow-none hover:bg-slate-800 transition-colors">
+                        Nieuwe Quote ✨
+                    </button>
+                </div>
+
+                <!-- Algemene AI Coach Card -->
+                <div class="bg-violet-50 border-3 border-black p-4 rounded-lg brutal-shadow">
+                    <h4 class="heading-font font-extrabold uppercase text-sm tracking-tight mb-2 text-violet-950">🤖 Algemene AI Coach</h4>
+                    <p class="text-[11px] text-slate-600 mb-3 font-medium">Stel al je algemene vragen over studeren, het studentenleven of op kamers gaan!</p>
+                    <div class="space-y-2">
+                        <input type="text" id="general-ai-input" onkeydown="if(event.key === 'Enter') askGeneralAI()" placeholder="bv. Hoe verdeel ik mijn studentenbudget?" class="w-full p-2 border-2 border-black rounded text-[11px] bg-slate-50 focus:bg-white focus:outline-none brutal-shadow-sm font-medium">
+                        <button onclick="askGeneralAI()" id="btn-general-ai" class="w-full bg-violet-300 hover:bg-violet-400 text-black border-2 border-black py-1.5 rounded font-extrabold text-[11px] brutal-shadow-sm active:translate-y-0.5 active:shadow-none transition-all uppercase">Stel Vraag ✨</button>
+                    </div>
+                    
+                    <div id="general-ai-output" class="hidden mt-3 p-3 bg-slate-900 text-violet-200 rounded text-[11px] border-2 border-black leading-relaxed relative min-h-[50px]">
+                        <div id="general-ai-loader" class="hidden absolute inset-0 bg-slate-900 text-white rounded flex items-center justify-center font-bold text-xs gap-2">
+                            <span class="animate-bounce">⚡</span> AI typt...
+                        </div>
+                        <div id="general-ai-text" class="space-y-2 font-medium"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Footer Poster -->
+        <footer class="mt-8 pt-4 border-t-4 border-black flex flex-col sm:flex-row items-center justify-between text-xs font-semibold text-slate-500 gap-4">
+            <div>
+                <span>Ontworpen door <strong class="text-slate-900 font-bold">Kaan Dikmen</strong> met behulp van <strong class="text-slate-900 font-bold">Gemini</strong>. Stay focused! 🚀</span>
+            </div>
+            <div class="flex gap-2 no-print">
+                <button onclick="handlePrint()" class="bg-black text-white px-3 py-1.5 border border-black rounded hover:bg-slate-800 transition-colors brutal-shadow text-[11px] uppercase tracking-wider font-bold active:translate-y-0.5">
+                    Poster Printen 🖨️
+                </button>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Script voor alle interactieve elementen -->
+    <script>
+        // State management
+        let checkedTips = { 1: false, 2: false, 3: false, 4: false, 5: false };
+        let timerMinutesDefault = 25;
+        let timerSeconds = timerMinutesDefault * 60;
+        let timerInterval = null;
+        let activeTheme = 'yellow';
+
+        // Platform API Key standard fallback
+        const apiKey = ""; 
+
+        // Helper function to safely get saved Gemini API key
+        function getApiKey() {
+            const savedKey = localStorage.getItem('kaan_gemini_api_key');
+            if (savedKey) return savedKey;
+            return apiKey; // fallback to automatic environment key
+        }
+
+        const quotes = [
+            "\"Je hoeft niet direct perfect te zijn, je moet gewoon beginnen.\" - Student Alumnus",
+            "\"Uren blokken is verleden tijd. Slim studeren is de toekomst!\"",
+            "\"Ouderejaars bijten niet. Ze hebben letterlijk samenvattingen voor je. Vraag ze!\"",
+            "\"Een planning is geen gevangenis, het is je ticket naar zorgeloze vrije tijd.\"",
+            "\"Eerste week aanwezigheid scheelt je 3 slapeloze nachten in de toetsweek.\"",
+            "\"Fouten maken in het begin is onderdeel van de onboarding. Maak je geen zorgen!\""
+        ];
+
+        /**
+         * Global API Call Retry Helper with Exponential Backoff
+         */
+        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP status ${response.status}`);
+                }
+                return response;
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                }
+                throw error;
+            }
+        }
+
+        // Sound Effects (Web Audio API synth - geen externe url afhankelijkheid)
+        function playSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                } else if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    osc.frequency.setValueAtTime(600, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.35);
+                } else if (type === 'complete') {
+                    const now = ctx.currentTime;
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(261.63, now); // C4
+                    osc.frequency.setValueAtTime(329.63, now + 0.1); // E4
+                    osc.frequency.setValueAtTime(392.00, now + 0.2); // G4
+                    osc.frequency.setValueAtTime(523.25, now + 0.3); // C5
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start();
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                // AudioContext blocked
+            }
+        }
+
+        // Custom Modal Controller (Replacing Alert Window)
+        function showModal(title, message, icon = '⏱️') {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('brutal-modal').classList.remove('hidden');
+            playSound('complete');
+        }
+
+        function closeModal() {
+            playSound('click');
+            document.getElementById('brutal-modal').classList.add('hidden');
+        }
+
+        // API Key Management Modals
+        function openApiKeyModal() {
+            const currentKey = localStorage.getItem('kaan_gemini_api_key') || "";
+            document.getElementById('api-key-input').value = currentKey;
+            document.getElementById('api-key-modal').classList.remove('hidden');
+            playSound('click');
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('api-key-modal').classList.add('hidden');
+            playSound('click');
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('api-key-input').value.trim();
+            if (val) {
+                localStorage.setItem('kaan_gemini_api_key', val);
+                showModal("Succes!", "Jouw API Sleutel is succesvol opgeslagen! De AI-features zullen nu overal vlekkeloos werken.", "🎉");
+            } else {
+                localStorage.removeItem('kaan_gemini_api_key');
+            }
+            closeApiKeyModal();
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('kaan_gemini_api_key');
+            document.getElementById('api-key-input').value = "";
+            showModal("Verwijderd", "API Sleutel is verwijderd. De AI-functies vallen nu terug op de standaard platform-instelling.", "🗑️");
+            closeApiKeyModal();
+        }
+
+        // Add helper function to populate fear textbox from suggestions
+        function addFearText(text) {
+            playSound('click');
+            const inputEl = document.getElementById('ai-problem-input');
+            inputEl.value = text;
+            inputEl.focus();
+        }
+
+        // Theme switching logic
+        function setTheme(theme) {
+            playSound('click');
+            const body = document.body;
+            const stamp = document.getElementById('badge-stamp');
+            const highlight = document.getElementById('accent-highlight');
+            const tag = document.getElementById('accent-tag');
+            
+            // Reset old theme classes
+            body.classList.remove('bg-amber-50', 'bg-pink-50', 'bg-emerald-50', 'bg-violet-50');
+            stamp.classList.remove('bg-yellow-300', 'bg-pink-300', 'bg-emerald-300', 'bg-violet-400');
+            highlight.classList.remove('bg-yellow-300', 'bg-pink-300', 'bg-emerald-300', 'bg-violet-400', 'text-indigo-600', 'text-black');
+            
+            if (theme === 'yellow') {
+                body.classList.add('bg-amber-50');
+                stamp.classList.add('bg-yellow-300');
+                highlight.classList.add('bg-yellow-300', 'text-indigo-600');
+            } else if (theme === 'pink') {
+                body.classList.add('bg-pink-50');
+                stamp.classList.add('bg-pink-300');
+                highlight.classList.add('bg-pink-300', 'text-black');
+            } else if (theme === 'green') {
+                body.classList.add('bg-emerald-50');
+                stamp.classList.add('bg-emerald-300');
+                highlight.classList.add('bg-emerald-300', 'text-black');
+            } else if (theme === 'purple') {
+                body.classList.add('bg-violet-50');
+                stamp.classList.add('bg-violet-400');
+                highlight.classList.add('bg-violet-400', 'text-black');
+            }
+            activeTheme = theme;
+        }
+
+        // Toggle Expandable Tips
+        function toggleTip(id) {
+            const details = document.getElementById(`details-${id}`);
+            const card = document.getElementById(`tip-${id}`);
+            
+            // Check of het momenteel verborgen is
+            const isHidden = details.classList.contains('hidden');
+            
+            // Eerst alles sluiten om het netjes te houden
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`details-${i}`).classList.add('hidden');
+                document.getElementById(`tip-${i}`).classList.remove('ring-4', 'ring-black');
+            }
+            
+            // Als het gesloten was, nu openen
+            if (isHidden) {
+                details.classList.remove('hidden');
+                card.classList.add('ring-4', 'ring-black');
+                playSound('click');
+            }
+        }
+
+        // Smart Gemini AI Connection for personal problems in Tip 3
+        async function askAI() {
+            const inputEl = document.getElementById('ai-problem-input');
+            const problem = inputEl.value.trim();
+            if (!problem) return;
+            
+            playSound('click');
+            
+            const currentKey = getApiKey();
+            const answerBox = document.getElementById('fear-buster-answer');
+            const answerText = document.getElementById('fear-buster-text');
+            const loader = document.getElementById('ai-loader');
+            const submitBtn = document.getElementById('ai-submit-btn');
+            
+            if (!currentKey) {
+                openApiKeyModal();
+                showModal("Sleutel Vereist", "Er is geen Gemini API-sleutel geconfigureerd. Voer hieronder gratis een sleutel in om de AI te activeren!", "🔑");
+                return;
+            }
+
+            // Show box and loader
+            answerBox.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "DENKT NA...";
+            
+            const systemPrompt = "Je bent een empathische, vindingrijke en bemoedigende AI-studiebegeleider voor eerstejaarsstudenten in het hoger onderwijs. De student heeft het volgende probleem/angst: \"" + problem + "\". Geef direct een kort, uiterst praktisch, geruststellend en concreet advies of tip in het Nederlands. Gebruik maximaal 3 zinnen en spreek de student direct aan met 'je' of 'jij'. Maak het bemoedigend en sluit af met een motiverende zin.";
+            const userQuery = `Geef mij direct een oplossing of advies voor mijn specifieke situatie: ${problem}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${currentKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+            
+            try {
+                const response = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const advice = candidate.content.parts[0].text;
+                    answerText.innerHTML = `🔮 <strong>AI Survival Advies:</strong><br>${advice.replace(/\n/g, '<br>')}`;
+                    playSound('success');
+                } else {
+                    throw new Error("Ongeldig antwoordformaat van API");
+                }
+            } catch (err) {
+                console.warn("AI Request failed", err);
+                answerText.innerHTML = `💡 <strong>AI Survival Advies:</strong><br>Oeps, kon geen verbinding maken met de AI. Controleer je internet of Gemini API sleutel!`;
+            } finally {
+                loader.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerText = "VRAAG AI";
+            }
+        }
+
+        // Smart Study AI Helper function using Gemini API
+        async function askStudyAI(action) {
+            const inputEl = document.getElementById('study-notes-input');
+            const notes = inputEl.value.trim();
+            if (!notes) {
+                showModal("Invoer Leeg", "Plak eerst wat ruwe aantekeningen of tekst in het vak om de AI aan het werk te zetten! 🧠", "⚠️");
+                return;
+            }
+
+            playSound('click');
+
+            const currentKey = getApiKey();
+            const outputBox = document.getElementById('study-ai-output');
+            const outputText = document.getElementById('study-ai-text');
+            const loader = document.getElementById('study-ai-loader');
+            const btnCornell = document.getElementById('btn-ai-cornell');
+            const btnRecall = document.getElementById('btn-ai-recall');
+
+            if (!currentKey) {
+                openApiKeyModal();
+                showModal("Sleutel Vereist", "Er is geen Gemini API-sleutel geconfigureerd. Voer hieronder gratis een sleutel in om de AI te activeren!", "🔑");
+                return;
+            }
+
+            outputBox.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            btnCornell.disabled = true;
+            btnRecall.disabled = true;
+
+            let systemPrompt = "";
+            if (action === 'cornell') {
+                systemPrompt = "Je bent een deskundige academische studie-assistent. Neem de ruwe aantekeningen van de student en herstructureer deze nauwkeurig volgens de Cornell-notitiemethode. Geef je antwoord terug in duidelijke, overzichtelijke HTML met exact 3 secties: 1) <strong class='text-white uppercase tracking-wider block mb-1'>📁 CUES / KERNVRAGEN:</strong> (belangrijke definities of vragen aan de linkerkant), 2) <strong class='text-white uppercase tracking-wider block mb-1 mt-3'>📝 GESTRUCTUREERDE NOTITIES:</strong> (hoofdpunten met overzichtelijke bullitpoints), en 3) <strong class='text-white uppercase tracking-wider block mb-1 mt-3'>🎯 EENREGELIGE SAMENVATTING:</strong> (de absolute kern in 1 krachtige zin). Reageer in het Nederlands.";
+            } else if (action === 'recall') {
+                systemPrompt = "Je bent een deskundige academische studie-assistent. Neem de tekst van de student en genereer 3 uiterst effectieve actieve recall leer-vragen om de stof direct te kunnen oefenen. Geef je antwoord terug in nette HTML. Gebruik uitsluitend de HTML <details> en <summary> tags voor elke vraag, zodat de student op de vraag kan klikken om het antwoord te onthullen! Formatteer de details tags uiterst overzichtelijk (bijvoorbeeld: <details class='cursor-pointer my-2 bg-slate-900 p-2.5 rounded border border-emerald-500/30'><summary class='font-bold text-white hover:text-emerald-400'>Vraag: ... (klik om antwoord te tonen)</summary><p class='mt-2 text-emerald-100 pl-2 border-l-2 border-emerald-500'>Antwoord: ...</p></details>). Reageer in het Nederlands.";
+            }
+
+            const userQuery = `Structureer deze aantekeningen: ${notes}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${currentKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    let cleanHTML = candidate.content.parts[0].text;
+                    // Eventuele markdown tags van het LLM opschonen
+                    if (cleanHTML.startsWith('```html')) {
+                        cleanHTML = cleanHTML.replace(/^```html/, '').replace(/```$/, '');
+                    } else if (cleanHTML.startsWith('```')) {
+                        cleanHTML = cleanHTML.replace(/^```/, '').replace(/```$/, '');
+                    }
+                    outputText.innerHTML = cleanHTML;
+                    playSound('success');
+                } else {
+                    throw new Error("Ongeldig antwoord van de API");
+                }
+            } catch (err) {
+                console.warn("AI Study Assistant failed", err);
+                outputText.innerHTML = `⚠️ <strong>Fout bij de studie-assistent:</strong> Kon geen verbinding maken met de AI. Controleer je instellingen en internet!`;
+            } finally {
+                loader.classList.add('hidden');
+                btnCornell.disabled = false;
+                btnRecall.disabled = false;
+            }
+        }
+
+        // Checkbox tracker functionaliteit
+        function toggleCheck(id) {
+            checkedTips[id] = !checkedTips[id];
+            const checkIcon = document.querySelector(`#check-box-${id} span`);
+            const trackerCheck = document.getElementById(`tracker-check-${id}`);
+            
+            if (checkedTips[id]) {
+                checkIcon.classList.remove('hidden');
+                trackerCheck.innerText = '✅';
+                playSound('success');
+                triggerConfettiBurst();
+            } else {
+                checkIcon.classList.add('hidden');
+                trackerCheck.innerText = '❌';
+                playSound('click');
+            }
+            
+            updateScore();
+        }
+
+        // Score update engine
+        function updateScore() {
+            let score = 0;
+            for (let key in checkedTips) {
+                if (checkedTips[key]) score++;
+            }
+            
+            document.getElementById('score-counter').innerText = `${score}/5`;
+            
+            const badge = document.getElementById('survival-badge');
+            const congrats = document.getElementById('checklist-congrats');
+            
+            if (score === 0) {
+                badge.innerText = "Groentje 🍼";
+                badge.className = "text-xs font-bold px-2 py-0.5 bg-yellow-400 text-black rounded uppercase";
+                congrats.classList.add('hidden');
+            } else if (score < 3) {
+                badge.innerText = "Overlevende 🎒";
+                badge.className = "text-xs font-bold px-2 py-0.5 bg-sky-400 text-black rounded uppercase";
+                congrats.classList.add('hidden');
+            } else if (score < 5) {
+                badge.innerText = "Strijder 🛡️";
+                badge.className = "text-xs font-bold px-2 py-0.5 bg-emerald-400 text-black rounded uppercase";
+                congrats.classList.add('hidden');
+            } else {
+                badge.innerText = "Overlevings-Pro 🎓";
+                badge.className = "text-xs font-bold px-2 py-0.5 bg-purple-500 text-white rounded uppercase animate-pulse";
+                congrats.classList.remove('hidden');
+                playSound('complete');
+                triggerConfettiBurst(50); // Mega burst
+            }
+        }
+
+        // Adjustable Pomodoro Timer Logic
+        function adjustTimerDuration() {
+            const minInput = document.getElementById('timer-minutes');
+            let val = parseInt(minInput.value);
+            
+            // Validation
+            if (isNaN(val) || val < 1) {
+                val = 25;
+                minInput.value = 25;
+            } else if (val > 180) {
+                val = 180;
+                minInput.value = 180;
+            }
+            
+            timerMinutesDefault = val;
+            
+            // Pas alleen aan als de timer momenteel niet loopt
+            if (!timerInterval) {
+                timerSeconds = timerMinutesDefault * 60;
+                updateTimerDisplay();
+            }
+        }
+
+        function toggleTimer() {
+            playSound('click');
+            const btn = document.getElementById('btn-timer-start');
+            
+            if (timerInterval) {
+                // Pause
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.innerText = "START";
+                btn.classList.remove('bg-red-500');
+                btn.classList.add('bg-black');
+            } else {
+                // Start
+                btn.innerText = "PAUZE";
+                btn.classList.remove('bg-black');
+                btn.classList.add('bg-red-500');
+                
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        btn.innerText = "START";
+                        btn.className = "bg-black text-white px-3 py-1.5 rounded font-extrabold text-[10px] brutal-shadow-sm";
+                        
+                        showModal("Timer Voltooid!", "⏱️ Uitstekend gewerkt! Je focusronde zit erop. Tijd voor een welverdiende pauze van 5 minuten.", "🎉");
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            playSound('click');
+            clearInterval(timerInterval);
+            timerInterval = null;
+            
+            const minInput = document.getElementById('timer-minutes');
+            let val = parseInt(minInput.value) || 25;
+            timerSeconds = val * 60;
+            
+            updateTimerDisplay();
+            const btn = document.getElementById('btn-timer-start');
+            btn.innerText = "START";
+            btn.className = "bg-black text-white px-3 py-1.5 rounded font-extrabold text-[10px] brutal-shadow-sm";
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            document.getElementById('timer-display').innerText = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Inspiratie Quotes
+        function newQuote() {
+            playSound('click');
+            const quoteBox = document.getElementById('quote-box');
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteBox.style.opacity = '0';
+            setTimeout(() => {
+                quoteBox.innerText = quotes[randomIndex];
+                quoteBox.style.opacity = '1';
+            }, 150);
+        }
+
+        // Algemene AI Coach helper function using Gemini API
+        async function askGeneralAI() {
+            const inputEl = document.getElementById('general-ai-input');
+            const question = inputEl.value.trim();
+            if (!question) {
+                showModal("Invoer Leeg", "Stel eerst een vraag aan de AI Coach! 🧠", "⚠️");
+                return;
+            }
+
+            playSound('click');
+
+            const currentKey = getApiKey();
+            const outputBox = document.getElementById('general-ai-output');
+            const outputText = document.getElementById('general-ai-text');
+            const loader = document.getElementById('general-ai-loader');
+            const submitBtn = document.getElementById('btn-general-ai');
+
+            if (!currentKey) {
+                openApiKeyModal();
+                showModal("Sleutel Vereist", "Er is geen Gemini API-sleutel geconfigureerd. Voer hieronder gratis een sleutel in om de AI te activeren!", "🔑");
+                return;
+            }
+
+            outputBox.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "DENKT NA...";
+
+            const systemPrompt = "Je bent een gezellige, humoristische en uiterst deskundige AI Studenten Coach voor Kaan Dikmen's studenten-app. Beantwoord de vraag van de student op een overzichtelijke, bemoedigende en frisse manier in het Nederlands. Gebruik emoji's, bulletpoints indien handig en houd het antwoord lekker behapbaar (maximaal 4-5 zinnen of een korte lijst). Spreek de student direct aan met 'je' of 'jij'.";
+            const userQuery = `Beantwoord mijn vraag over studeren of het studentenleven: ${question}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${currentKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    let text = candidate.content.parts[0].text;
+                    outputText.innerHTML = `🔮 <strong>AI Coach:</strong><br>${text.replace(/\n/g, '<br>')}`;
+                    playSound('success');
+                } else {
+                    throw new Error("Ongeldig antwoord van de API");
+                }
+            } catch (err) {
+                console.warn("General AI Coach failed", err);
+                outputText.innerHTML = `⚠️ <strong>Fout:</strong> Kon geen contact maken met de AI Coach. Controleer je internet of API sleutel!`;
+            } finally {
+                loader.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerText = "STEL VRAAG ✨";
+            }
+        }
+
+        // Pre-print Handler: zorgt dat alle details opengeklapt geprint worden voor de fysieke poster
+        function handlePrint() {
+            // Klap alle tips tijdelijk open voor de printer
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`details-${i}`).classList.remove('hidden');
+                document.getElementById(`tip-${i}`).classList.remove('ring-4', 'ring-black');
+            }
+            window.print();
+        }
+
+        // Confetti Canvas Particle Effect (Lichtgewicht, native JS)
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class ConfettiParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 8 + 4;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * -10 - 2;
+                this.gravity = 0.3;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 10 - 5;
+                this.opacity = 1;
+            }
+            update() {
+                this.speedY += this.gravity;
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.rotation += this.rotationSpeed;
+                this.opacity -= 0.015;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function triggerConfettiBurst(count = 15) {
+            const startX = window.innerWidth / 2;
+            const startY = window.innerHeight / 2;
+            for (let i = 0; i < count; i++) {
+                particles.push(new ConfettiParticle(startX, startY));
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles = particles.filter(p => p.opacity > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateConfetti);
+        }
+        
+        window.onload = function () {
+            animateConfetti();
+        }
+    </script>
+</body>
+</html>
